@@ -141,3 +141,105 @@ UnitTest [#1]_
 -------------------------------------------------------
 
 .. [#1] https://github.com/jasonkarns/bats-mock
+
+^^^^^^^^^^^^^^^^^^^^
+.gitmodules
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: shell
+  :linenos:
+
+    [submodule "test/bats"]
+      path = test/bats
+      url = https://github.com/bats-core/bats-core.git
+    [submodule "test/test_helper/bats-support"]
+      path = test/test_helper/bats-support
+      url = https://github.com/bats-core/bats-support.git
+    [submodule "test/test_helper/bats-assert"]
+      path = test/test_helper/bats-assert
+      url = https://github.com/bats-core/bats-assert.git
+    [submodule "test/test_helper/mocks"]
+      path = test/test_helper/mocks
+      url = https://github.com/grayhemp/bats-mock
+
+^^^^^^^^^^^^^^^^^^^^
+Test
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: shell
+  :linenos:
+  
+  #!bats/bin/bats
+
+  # Set magic variables for current FILE & DIR
+  __source_dir=$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}" )" )" && pwd )>/dev/null
+  __file=$(readlink -f "${BASH_SOURCE[0]}" )
+  __filename=$(basename "${__file}")
+
+  load test_helper.bash
+
+  @test "run sample script" {
+
+    mocked_command="date"
+    mock="$(mock_create)"
+    mock_path="${mock%/*}" # Parameter expansion to get the folder portion of the temp mock's path
+    mock_file="${mock##*/}" # Parameter expansion to get the filename portion of the temp mock's path
+    ln -sf "${mock_path}/${mock_file}" "${mock_path}/${mocked_command}"
+    PATH="${mock_path}:$PATH" # Putting the stub at the beginning of the PATH so it gets picked up first
+    
+    mock_set_output "${mock}" "YYYY-MM-DD_hh-mm_ss_sample_getproperties.sh.log" 1
+    
+    run ${BATS_TEST_DIRNAME}/../src/01_sample_getproperties.sh
+
+    # Cleanup our stub and fixup the PATH
+    rm "${mock_path}/${mocked_command}"
+    PATH="${PATH/${mock_path}:/}"
+    
+  }
+
+Run the test 
+
+.. code-block:: shell
+  :linenos:
+
+  bats/bin/bats . --show-output-of-passing-tests #display output of test (even when the result is ok)
+
+Possibility to integrate the shell test in Jenkins
+
+.. code-block:: shell
+  :linenos:
+
+  # Delete target folder including junit report and re-create the folder.
+  rm -rf target; mkdir -p target/junit-reports
+  # Run bash bats test with junit formatter
+  test/bats/bin/bats --formatter junit test | tee target/junit-reports/TEST-report.xml;
+
+
+-------------------------------------------------------
+Shell Lint [#]_
+-------------------------------------------------------
+
+.. [#] https://github.com/koalaman/shellcheck
+
+Run the shellcheck from shell:
+
+.. code-block:: shell
+  :linenos:
+
+  lint/shellcheck.exe ../src/01_sample_getproperties.sh
+
+
+.. note:
+
+  Be caution that some false positive may shown by shellcheck.
+  To disable the check a comment should be added more information on each the wiki of shellcheck [#]_
+  
+.. code-block:: shell
+  :linenos:
+
+  # We want this to output $PATH without expansion
+  # shellcheck disable=SC2016
+
+
+
+.. [#] https://www.shellcheck.net/wiki/SC2016
