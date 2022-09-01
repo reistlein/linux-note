@@ -20,8 +20,7 @@ Bash header
 Bash Log
 -------------------------------------------------------
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   #-----------
   #Main
@@ -42,8 +41,7 @@ Bash Log
 The script exit upon error [#f1]_ &  [#f2]_
 -----------------------------------------------
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   set -o errexit  # fail if a command return an exit status != 0
   set -o nounset  # fail if a variable is not set
@@ -83,8 +81,7 @@ Debug [#]_
 
 .. [#] https://www.redhat.com/sysadmin/error-handling-bash-scripting
 
-.. code-block:: shell
-  :linenos:
+.. code::
 
   _DEBUG="on"
   function DEBUG()
@@ -104,8 +101,7 @@ see Bash get value from property file for example of usage.
 Bash get value from property file
 -------------------------------------------------------
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   #This function allows to get the property from the given CSV file.
   #@param $1 the property to get
@@ -146,8 +142,7 @@ UnitTest [#1]_
 .gitmodules
 ^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
     [submodule "test/bats"]
       path = test/bats
@@ -166,8 +161,7 @@ UnitTest [#1]_
 Test
 ^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
   
   #!bats/bin/bats
 
@@ -199,15 +193,13 @@ Test
 
 Run the test 
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   bats/bin/bats . --show-output-of-passing-tests #display output of test (even when the result is ok)
 
 Possibility to integrate the shell test in Jenkins
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   # Delete target folder including junit report and re-create the folder.
   rm -rf target; mkdir -p target/junit-reports
@@ -223,8 +215,7 @@ Shell Lint [#]_
 
 Run the shellcheck from shell:
 
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   lint/shellcheck.exe ../src/01_sample_getproperties.sh
 
@@ -234,8 +225,7 @@ Run the shellcheck from shell:
   Be caution that some false positive may shown by shellcheck.
   To disable the check a comment should be added more information on each the wiki of shellcheck [#]_
   
-.. code-block:: shell
-  :linenos:
+.. code:: 
 
   # We want this to output $PATH without expansion
   # shellcheck disable=SC2016
