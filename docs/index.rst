@@ -7,4 +7,5 @@ Linux subject
 
    *
    RHEL_8/*
+   SSH/index.rst
 

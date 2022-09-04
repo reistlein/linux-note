@@ -2,6 +2,8 @@
 Bash Best Pracices
 =======================
 
+Target users for this note is system administrators.
+
 -------------------------------------------------------
 Bash header
 -------------------------------------------------------
@@ -141,21 +143,15 @@ UnitTest [#1]_
 ^^^^^^^^^^^^^^^^^^^^
 .gitmodules
 ^^^^^^^^^^^^^^^^^^^^
-
 .. code:: 
 
-    [submodule "test/bats"]
-      path = test/bats
-      url = https://github.com/bats-core/bats-core.git
-    [submodule "test/test_helper/bats-support"]
-      path = test/test_helper/bats-support
-      url = https://github.com/bats-core/bats-support.git
-    [submodule "test/test_helper/bats-assert"]
-      path = test/test_helper/bats-assert
-      url = https://github.com/bats-core/bats-assert.git
-    [submodule "test/test_helper/mocks"]
-      path = test/test_helper/mocks
-      url = https://github.com/grayhemp/bats-mock
+  git submodule add https://github.com/bats-core/bats-core.git test/bats
+  git submodule add https://github.com/bats-core/bats-support.git test/test_helper/bats-support
+  git submodule add https://github.com/bats-core/bats-assert.git test/test_helper/bats-assert
+  git submodule add https://github.com/grayhemp/bats-mock test/test_helper/mocks
+  git submodule update --init  #to update the module
+
+
 
 ^^^^^^^^^^^^^^^^^^^^
 Test

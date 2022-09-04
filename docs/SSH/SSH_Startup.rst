@@ -1,5 +1,5 @@
 ---------------------
-SSH Init
+SSH Startup
 ---------------------
 
 On client .ssh/config 
