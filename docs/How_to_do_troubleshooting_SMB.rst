@@ -1,3 +1,185 @@
+=============================================
+Samba Installation  & Configuration
+=============================================
+
+--------------------------------
+Linux Samba server 
+--------------------------------
+
+^^^^^^^^^^^^^^^^^^^^^^
+Samba configuration
+^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. [#] https://doc.ubuntu-fr.org/samba_smb.conf
+
+
+
+But you can change that by editing /etc/samba/smb.conf and adding the following to the [global] section [#]_ :
+
+.. code::
+
+    server min protocol = SMB3
+    #client min protocol = SMB3
+
+.. [#] https://askubuntu.com/questions/919967/how-to-tell-gigolo-gvfs-to-use-smbv2-for-windows-shares
+
+.. code::
+
+
+    #Specifies which ports the server should listen on for SMB traffic.
+    smb ports = 445 139 
+
+    bind interfaces only = yes 
+    interfaces = enp0s3 lo
+.. [#] https://www.samba.org/samba/docs/current/man-html/smb.conf.5.html#BINDINTERFACESONLY
+
+
+.. code::
+
+    server signing = required
+    client signing = required
+
+    map to guest  = never
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Install samba (ubuntu) [#smblinux1]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code::
+
+    sudo apt install samba
+
+    mkdir /home/<username>/sambashare/
+
+    user$ cat | sudo tee -a /etc/samba/smb.conf <<EOF
+    [sambashare]
+        comment = Samba on Ubuntu
+        path = /home/vagrant/sambashare
+        read only = no
+        browsable = yes
+    EOF
+
+    sudo service smbd restart
+    sudo ufw allow samba
+    
+    sudo smbpasswd -a username
+
+    sudo useradd -s /usr/sbin/nologin test1
+    sudopasswd -l test1
+    sudo smbpasswd -a test1
+
+.. code::
+
+    log file = /var/log/samba/log.%m
+
+.. [#smblinux1] https://ubuntu.com/tutorials/install-and-configure-samba#3-setting-up-samba
+
+
+New-SmbMapping : Multiple connections to a server or shared resource by the same user, using more than one user name,
+are not allowed. Disconnect all previous connections to the server or shared resource and try again.
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Samba 4 Active Directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+https://www.jjworld.fr/active-directory-linux-avec-samba-4/
+https://www.linux-magazine.com/Online/Features/What-s-New-in-Samba-4
+https://www.linux-magazine.com/Issues/2016/191/Samba-4
+
+
+--------------------------------
+Windows Samba server 
+--------------------------------
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Get Samba server configuration on Windows [#1]_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. code::
+
+    Get-SmbServerConfiguration | Select EnableSMB1Protocol,EnableSMB2Protocol
+
+
+.. [#1] https://docs.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create Samba share
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code::
+
+    $shareTocreate = @{
+        FilePath = "C:\DFSRoots\Files"
+        ShareName = "files"
+    }
+
+
+    $shares = @($shareTocreate)
+
+    $shareTocreate  | %{ New-Item -Path "$($_.FilePath)" -ItemType Directory -ErrorAction SilentlyContinue}
+    $shareTocreate  | %{ Remove-SmbShare  -Name "$($_.ShareName)" -Force:$true }
+    $shareTocreate  | %{ New-SmbShare -Name "$($_.ShareName)" -Path "$($_.FilePath)" -FullAccess "Domain Admins" -ChangeAccess "Protected Users" -ReadAccess "Domain Users"  }
+    $shareTocreate  | %{ Set-SmbPathAcl -ShareName "$($_.ShareName)"}
+
+    $Domain=$($env:USERDNSDOMAIN).toLower()
+    $ComputerFQDN=$("$($env:COMPUTERNAME).$($env:USERDNSDOMAIN)").toLower()
+
+
+    #More info on DFS
+    #https://windowsmasher.wordpress.com/2014/04/01/getting-started-with-dfsn-and-powershell/
+
+    #Delete DFS Root
+    Remove-DfsnRoot  -Path "\\$($Domain)\documents"  -Force:$true
+    New-DfsnRoot -Path "\\$($Domain)\documents" -TargetPath "\\$($ComputerFQDN)\files" -Type DomainV2
+
+--------------------------------
+Samba client Windows
+--------------------------------
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Get Samba client configuration on Windows [#1]_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. code::
+
+   Get-SmbClientConfiguration
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+List mounting point
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code::
+
+    net use
+    or 
+    Get-SmbMapping
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create mounting point
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On windows 10 use New-SmbMapping [#]_
+
+.. code::
+
+    $Credential = Get-Credential
+    New-SmbMapping -LocalPath K: -RemotePath \\192.168.95.10\sambashare -UserName $Credential.UserName -Password $Credential.GetNetworkCredential().Password
+    explorer K:
+    #
+    #Remove-SmbMapping -LocalPath "K:" 
+
+
+.. [#]  https://docs.microsoft.com/en-us/powershell/module/smbshare/new-smbmapping?view=windowsserver2022-ps
+
+
+
 =====================================
 How to do troubleshooting SMB
 =====================================
@@ -96,33 +278,12 @@ If you want to enable insecure guest access, you can configure the following Gro
 Resolution fix
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. code::
 
-map to guest  = never
+    map to guest  = never
 
 https://askubuntu.com/questions/1117030/how-do-i-configure-samba-so-that-windows-10-doesn-t-complain-about-insecure-gues#1145981
 
----------------------------------------------------
-Get Samba server configuration on Windows [#1]_
----------------------------------------------------
-
-
-.. code::
-
-    Get-SmbServerConfiguration | Select EnableSMB1Protocol,EnableSMB2Protocol
-
-
-.. [#1] https://docs.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3
-
-
-
----------------------------------------------------
-Get Samba client configuration on Windows [#1]_
----------------------------------------------------
-
-
-.. code::
-
-   Get-SmbClientConfiguration
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,32 +342,6 @@ klist
 
 KLIST /PURGE
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-List mounting point
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code::
-
-    net use
-    or 
-    Get-SmbMapping
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Create mounting point
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On windows 10 use New-SmbMapping [#]_
-
-.. code::
-
-    $Credential = Get-Credential
-    New-SmbMapping -LocalPath K: -RemotePath \\192.168.95.10\sambashare -UserName $Credential.UserName -Password $Credential.GetNetworkCredential().Password
-    explorer K:
-    #
-    #Remove-SmbMapping -LocalPath "K:" 
-
-
-.. [#]  https://docs.microsoft.com/en-us/powershell/module/smbshare/new-smbmapping?view=windowsserver2022-ps
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Capture trafick [#3]_
@@ -236,88 +371,3 @@ Capture trafick [#3]_
 
 
 
-=============================================
-Samba Installation  & Configuration
-=============================================
-
---------------------------------
-Samba server configuration
---------------------------------
-
-
-.. [#] https://doc.ubuntu-fr.org/samba_smb.conf
-
-
-
-But you can change that by editing /etc/samba/smb.conf and adding the following to the [global] section [#]_ :
-
-.. code::
-
-    server min protocol = SMB3
-    #client min protocol = SMB3
-
-.. [#] https://askubuntu.com/questions/919967/how-to-tell-gigolo-gvfs-to-use-smbv2-for-windows-shares
-
-.. code::
-
-
-    #Specifies which ports the server should listen on for SMB traffic.
-    smb ports = 445 139 
-
-    bind interfaces only = yes 
-    interfaces = enp0s3 lo
-.. [#] https://www.samba.org/samba/docs/current/man-html/smb.conf.5.html#BINDINTERFACESONLY
-
-
-.. code::
-
-    server signing = required
-    client signing = required
-
-    map to guest  = never
-
-------------------------------------
-Install samba (ubuntu) [#smblinux1]
-------------------------------------
-
-.. code::
-
-    sudo apt install samba
-
-    mkdir /home/<username>/sambashare/
-
-    user$ cat | sudo tee -a /etc/samba/smb.conf <<EOF
-    [sambashare]
-        comment = Samba on Ubuntu
-        path = /home/vagrant/sambashare
-        read only = no
-        browsable = yes
-    EOF
-
-    sudo service smbd restart
-    sudo ufw allow samba
-    
-    sudo smbpasswd -a username
-
-    sudo useradd -s /usr/sbin/nologin test1
-    sudopasswd -l test1
-    sudo smbpasswd -a test1
-
-.. code::
-
-    log file = /var/log/samba/log.%m
-
-.. [#smblinux1] https://ubuntu.com/tutorials/install-and-configure-samba#3-setting-up-samba
-
-
-New-SmbMapping : Multiple connections to a server or shared resource by the same user, using more than one user name,
-are not allowed. Disconnect all previous connections to the server or shared resource and try again.
-
-
-------------------------------------
-Samba 4 Active Directory
-------------------------------------
-
-https://www.jjworld.fr/active-directory-linux-avec-samba-4/
-https://www.linux-magazine.com/Online/Features/What-s-New-in-Samba-4
-https://www.linux-magazine.com/Issues/2016/191/Samba-4
