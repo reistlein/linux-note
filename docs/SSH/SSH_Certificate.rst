@@ -253,3 +253,21 @@ This following command allows to get details on public key and determine whether
                     permit-port-forwarding
                     permit-pty
                     permit-user-rc
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Revocate SSH certificate 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+System wide [#]_ :
+
+.. code::
+  
+echo "RevokedKeys /etc/ssh/revoked_keys" >>/etc/ssh/sshd_config
+ssh-keygen -k -f /etc/ssh/revoked_keys $public_key_to_revoke
+ssh-keygen -k -u -f /etc/ssh/revoked_keys $additional_public_keys_to_revoke
+or:
+echo "RevokedKeys /etc/ssh/revoked_keys" >>/etc/ssh/sshd_config
+echo @revoked $(cat $public_key_to_revoke) >> /etc/ssh/revoked_keys
+
+
+.. [#] https://www.lorier.net/docs/ssh-ca.html
