@@ -70,3 +70,20 @@ Script Linux
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 E:\00_majordome_folder\03_ws_linux\2022_01_22_ssh_key_rotate\rotateSSHKey.sh
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SSH with hardware security key (HSM)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+You'll get a public/private keypair back as usual, except in this case, the private key file does not contain a highly-sensitive private key but instead holds a "key handle" that is used by the security key to derive the real private key at signing time.
+(ref [manual-github-togeneratekeys]_ & [manual-github-togeneratekeys]_ )
+.. code::
+
+  ssh-keygen -t ecdsa-sk -C "your_email@example.com"
+
+
+.. [manual-github-togeneratekeys] https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#generating-a-new-ssh-key-for-a-hardware-security-key
+.. [forum-openssh-fidosupport] https://undeadly.org/cgi?action=article;sid=20191115064850

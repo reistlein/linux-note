@@ -31,8 +31,19 @@ Install and compile multimedia codecs:
 
 Instal Java JRE
 
-sudo apt install -y libavcodec-extra libdvd-pkg; sudo dpkg-reconfigure libdvd-pkg
+.. code::
 
+    sudo apt install -y default-jre
+
+Install ansible
+
+.. code::
+
+    sudo apt install -y  ansible
+
+
+
+    
 
 ---------------------
 Install yubikey [#]_
@@ -57,3 +68,32 @@ Configuration Slot 2 is used if you touch the button for between 2 and 5 seconds
 
 
 .. [#] https://support.yubico.com/hc/en-us/articles/360016614800-YubiKey-for-YubiCloud-Configuration-Guide
+
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Create challenge response
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code::
+
+    user$ ykpersonalize -2 -ochal-resp -ochal-hmac -ohmac-lt64 -oserial-api-visible
+
+You should receive a message similar to:
+
+Stored initial challenge and expected response in '$HOME/.yubico/challenge-123456'.
+
+---------------------
+Install pyhon
+---------------------
+
+sudo apt-get install python3-pip python3.10-venv
+
+
+
+/home/jpalmier/Documents/01_python-env/python-env/bin/
+
+
+/home/jpalmier/Documents/01_python-env/python-env/bin/sphinx-autobuild  source build
+
+
+sudo apt-get -y install gitg
+
